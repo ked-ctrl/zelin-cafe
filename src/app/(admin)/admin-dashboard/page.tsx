@@ -33,8 +33,6 @@ import {
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-import jsPDF from "jspdf"
-import autoTable from "jspdf-autotable" // Import autoTable directly
 
 // Initialize Supabase client
 const supabase = createClient(
@@ -252,7 +250,7 @@ export default function DashboardPage() {
             const month = new Date(order.created_at).toLocaleString("en-US", { month: "short" })
             acc[month] = (acc[month] || 0) + order.total
             return acc
-        }, {})
+          }, {})
 
           const monthlySalesData = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].map((month) => ({
             name: month,
@@ -374,63 +372,6 @@ export default function DashboardPage() {
     }
   }
 
-  // Export daily sales to PDF
-  const exportDailySalesToPDF = () => {
-    const doc = new jsPDF()
-    
-    doc.setFontSize(16)
-    doc.text("Daily Sales Report", 20, 20)
-    
-    doc.setFontSize(12)
-    const periodText = dailyStartDate && dailyEndDate 
-      ? `Period: ${dailyStartDate} to ${dailyEndDate}`
-      : `Period: Last 7 Days (ending ${new Date().toLocaleDateString("en-US", { day: "numeric", month: "numeric" })})`
-    doc.text(periodText, 20, 30)
-
-    const tableData = dailySales.map((item, index) => [
-      index + 1,
-      item.name,
-      item.sales.toString()
-    ])
-
-    autoTable(doc, { // Use autoTable function with doc as first argument
-      startY: 40,
-      head: [['#', 'Date', 'Number of Orders']],
-      body: tableData,
-      theme: 'striped',
-      headStyles: { fillColor: [125, 90, 60] },
-    })
-
-    doc.save(`daily-sales-${new Date().toISOString().split('T')[0]}.pdf`)
-  }
-
-  // Export monthly sales to PDF
-  const exportMonthlySalesToPDF = () => {
-    const doc = new jsPDF()
-    
-    doc.setFontSize(16)
-    doc.text("Monthly Sales Report", 20, 20)
-    
-    doc.setFontSize(12)
-    doc.text(`Year: ${monthlyYear}`, 20, 30)
-
-    const tableData = monthlySales.map((item, index) => [
-      index + 1,
-      item.name,
-      `₱${item.total.toFixed(2)}`
-    ])
-
-    autoTable(doc, { // Use autoTable function with doc as first argument
-      startY: 40,
-      head: [['#', 'Month', 'Total Sales']],
-      body: tableData,
-      theme: 'striped',
-      headStyles: { fillColor: [125, 90, 60] },
-    })
-
-    doc.save(`monthly-sales-${monthlyYear}-${new Date().toISOString().split('T')[0]}.pdf`)
-  }
-
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -468,46 +409,43 @@ export default function DashboardPage() {
                   Number of orders per day {dailyStartDate && dailyEndDate ? "for the selected range" : "for the last 7 days"}
                 </CardDescription>
               </div>
-              <div className="space-x-2">
-                <Button variant="outline" onClick={exportDailySalesToPDF}>Export to PDF</Button>
-                <Dialog open={isDailyDialogOpen} onOpenChange={setIsDailyDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button variant="outline">Retrieve</Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                      <DialogTitle>Select Date Range for Daily Sales</DialogTitle>
-                      <DialogDescription>Choose the date range to view daily sales data.</DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="start-date" className="text-right">Start Date</Label>
-                        <Input
-                          id="start-date"
-                          type="date"
-                          value={dailyStartDate}
-                          onChange={(e) => setDailyStartDate(e.target.value)}
-                          className="col-span-3"
-                        />
-                      </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="end-date" className="text-right">End Date</Label>
-                        <Input
-                          id="end-date"
-                          type="date"
-                          value={dailyEndDate}
-                          onChange={(e) => setDailyEndDate(e.target.value)}
-                          className="col-span-3"
-                        />
-                      </div>
+              <Dialog open={isDailyDialogOpen} onOpenChange={setIsDailyDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline">Retrieve</Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Select Date Range for Daily Sales</DialogTitle>
+                    <DialogDescription>Choose the date range to view daily sales data.</DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="start-date" className="text-right">Start Date</Label>
+                      <Input
+                        id="start-date"
+                        type="date"
+                        value={dailyStartDate}
+                        onChange={(e) => setDailyStartDate(e.target.value)}
+                        className="col-span-3"
+                      />
                     </div>
-                    <DialogFooter>
-                      <Button variant="outline" onClick={() => setIsDailyDialogOpen(false)}>Cancel</Button>
-                      <Button onClick={fetchDailySales}>Retrieve</Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="end-date" className="text-right">End Date</Label>
+                      <Input
+                        id="end-date"
+                        type="date"
+                        value={dailyEndDate}
+                        onChange={(e) => setDailyEndDate(e.target.value)}
+                        className="col-span-3"
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsDailyDialogOpen(false)}>Cancel</Button>
+                    <Button onClick={fetchDailySales}>Retrieve</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </CardHeader>
             <CardContent className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -535,37 +473,34 @@ export default function DashboardPage() {
                   Monthly sales comparison {monthlyYear !== new Date().getFullYear().toString() ? `for ${monthlyYear}` : "for the current year"}
                 </CardDescription>
               </div>
-              <div className="space-x-2">
-                <Button variant="outline" onClick={exportMonthlySalesToPDF}>Export to PDF</Button>
-                <Dialog open={isMonthlyDialogOpen} onOpenChange={setIsMonthlyDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button variant="outline">Retrieve</Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                      <DialogTitle>Select Year for Monthly Sales</DialogTitle>
-                      <DialogDescription>Choose the year to view monthly sales data.</DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="year" className="text-right">Year</Label>
-                        <Input
-                          id="year"
-                          type="number"
-                          value={monthlyYear}
-                          onChange={(e) => setMonthlyYear(e.target.value)}
-                          placeholder="Enter year (e.g., 2025)"
-                          className="col-span-3"
-                        />
-                      </div>
+              <Dialog open={isMonthlyDialogOpen} onOpenChange={setIsMonthlyDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline">Retrieve</Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Select Year for Monthly Sales</DialogTitle>
+                    <DialogDescription>Choose the year to view monthly sales data.</DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="year" className="text-right">Year</Label>
+                      <Input
+                        id="year"
+                        type="number"
+                        value={monthlyYear}
+                        onChange={(e) => setMonthlyYear(e.target.value)}
+                        placeholder="Enter year (e.g., 2025)"
+                        className="col-span-3"
+                      />
                     </div>
-                    <DialogFooter>
-                      <Button variant="outline" onClick={() => setIsMonthlyDialogOpen(false)}>Cancel</Button>
-                      <Button onClick={fetchMonthlySales}>Retrieve</Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsMonthlyDialogOpen(false)}>Cancel</Button>
+                    <Button onClick={fetchMonthlySales}>Retrieve</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </CardHeader>
             <CardContent className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
