@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { Coffee, Eye, EyeOff } from "lucide-react"
@@ -15,16 +15,24 @@ import Navbar from "../components/navbar"
 import Footer from "../components/footer"
 import { supabase } from "@/lib/supabase"
 import bcrypt from 'bcryptjs'
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 
 export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
   const [agreeTerms, setAgreeTerms] = useState(false)
+  const [passwordMismatch, setPasswordMismatch] = useState(false)
+  const router = useRouter()
 
-  const containerVariants = { 
+  useEffect(() => {
+    setPasswordMismatch(password !== confirmPassword && password !== "" && confirmPassword !== "");
+  }, [password, confirmPassword]);
 
+  const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -45,6 +53,11 @@ export default function SignupPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (passwordMismatch) {
+      toast.error("Passwords do not match");
+      return;
+    }
     
     try {
       const hashedPassword = await bcrypt.hash(password, 10)
@@ -60,19 +73,20 @@ export default function SignupPage() {
         ])
         .select()
         .single()
-  
+
       if (error) throw error
-  
-      // Set user session in cookies
-      document.cookie = `user-session=${JSON.stringify(data)}; path=/;`
-  
-      // Redirect to dashboard
-      window.location.href = '/customer-menu'
+
+      toast.success("You have successfully signed up! Please enter your credentials to log in.")
+
+      setTimeout(() => {
+        router.push('/login')
+      }, 2000)
     } catch (error: any) {
       console.error("Signup error:", error)
-      alert(`Signup failed: ${error?.message || 'Unknown error occurred'}`)
+      toast.error(`Signup failed: ${error?.message || 'Unknown error occurred'}`)
     }
   }
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -101,7 +115,7 @@ export default function SignupPage() {
                       <Label htmlFor="name">Full Name</Label>
                       <Input
                         id="name"
-                        placeholder="Your Name"
+                        placeholder="Juan Dela Cruz"
                         required
                         value={name}
                         onChange={(e) => setName(e.target.value)}
@@ -134,10 +148,32 @@ export default function SignupPage() {
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                           onClick={() => setShowPassword(!showPassword)}
                         >
-                          {/* {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />} */}
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
                       </div>
                       <p className="text-xs text-gray-500">Password must be at least 8 characters long</p>
+                      {passwordMismatch && <p className="text-xs text-red-500">Passwords do not match</p>}
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="confirm-password">Confirm Password</Label>
+                      <div className="relative">
+                        <Input
+                          id="confirm-password"
+                          type={showPassword ? "text" : "password"}
+                          placeholder="••••••••"
+                          required
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                        />
+                        <button
+                          type="button"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                      {passwordMismatch && <p className="text-xs text-red-500">Passwords do not match</p>}
                     </div>
                     <div className="flex items-center space-x-2">
                       <Checkbox
@@ -180,4 +216,3 @@ export default function SignupPage() {
     </div>
   )
 }
-
