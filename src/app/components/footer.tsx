@@ -69,21 +69,6 @@ export default function Footer() {
                   About Us
                 </Link>
               </motion.li>
-              <motion.li whileHover={{ x: 5 }}>
-                <Link href="#" className="text-gray-400 hover:text-brown-400">
-                  Careers
-                </Link>
-              </motion.li>
-              <motion.li whileHover={{ x: 5 }}>
-                <Link href="#" className="text-gray-400 hover:text-brown-400">
-                  Contact
-                </Link>
-              </motion.li>
-              <motion.li whileHover={{ x: 5 }}>
-                <Link href="#" className="text-gray-400 hover:text-brown-400">
-                  Privacy Policy
-                </Link>
-              </motion.li>
             </ul>
           </motion.div>
           <motion.div variants={itemVariants} className="space-y-4">
