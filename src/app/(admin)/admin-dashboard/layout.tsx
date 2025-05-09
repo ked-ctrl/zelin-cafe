@@ -88,14 +88,6 @@ export default function DashboardLayout({
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === "/dashboard/categories"} tooltip="Categories">
-                  <Link href="/admin-dashboard/categories">
-                    <FolderTree className="h-5 w-5" />
-                    <span>Categories</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname === "/dashboard/food"} tooltip="Food Items">
                   <Link href="/admin-dashboard/food">
                     <CoffeeIcon className="h-5 w-5" />
