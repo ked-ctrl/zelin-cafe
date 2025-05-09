@@ -66,7 +66,7 @@ export function Menu({ items, onAddToCart, isAdmin = false, onEdit, onDelete }: 
           <div className="p-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-800">{item.menu_name}</h3>
-              <p className="text-lg font-bold text-amber-600">${item.menu_price.toFixed(2)}</p>
+              <p className="text-lg font-bold text-amber-600">₱{item.menu_price.toFixed(2)}</p>
             </div>
             <p className="text-sm text-gray-500 mt-1">{item.menu_category}</p>
             <p className="text-sm mt-2 text-gray-600 line-clamp-2">{item.menu_description}</p>
