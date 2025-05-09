@@ -21,20 +21,6 @@ import {
 } from "recharts"
 import { createClient } from "@supabase/supabase-js"
 import { toast } from "sonner"
-import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-} from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
-import jsPDF from "jspdf"
-import autoTable from "jspdf-autotable" // Import autoTable directly
 
 // Initialize Supabase client
 const supabase = createClient(
@@ -68,11 +54,6 @@ export default function DashboardPage() {
   const [dailySales, setDailySales] = useState<{ name: string; sales: number }[]>([])
   const [monthlySales, setMonthlySales] = useState<{ name: string; total: number }[]>([])
   const [loading, setLoading] = useState(true)
-  const [isDailyDialogOpen, setIsDailyDialogOpen] = useState(false)
-  const [isMonthlyDialogOpen, setIsMonthlyDialogOpen] = useState(false)
-  const [dailyStartDate, setDailyStartDate] = useState("")
-  const [dailyEndDate, setDailyEndDate] = useState("")
-  const [monthlyYear, setMonthlyYear] = useState(new Date().getFullYear().toString())
 
   useEffect(() => {
     const checkSession = async () => {
@@ -129,7 +110,7 @@ export default function DashboardPage() {
           return acc
         }, {})
 
-        const aestheticColors = ["#FF6F61", "#6B7280", "#F4A261", "#2A9D8F", "#E76F51"]
+        const aestheticColors = ["#FF6F61", "#6B7280", "#F4A261", "#2A9D8F", "#E76F51"] // Bright but aesthetic palette
 
         const topItems = Object.values(itemCounts)
           .sort((a: any, b: any) => b.quantity - a.quantity)
@@ -183,20 +164,15 @@ export default function DashboardPage() {
     fetchRecentOrders()
   }, [])
 
-  // Fetch default daily sales (last 7 days) on initial load
+  // Fetch daily sales
   useEffect(() => {
-    const fetchDefaultDailySales = async () => {
+    const fetchDailySales = async () => {
       try {
         setLoading(true)
-        const today = new Date()
-        const startDate = new Date(today)
-        startDate.setDate(today.getDate() - 6) // Last 7 days including today
-
         const { data, error } = await supabase
           .from("orders")
           .select("created_at")
-          .gte("created_at", startDate.toISOString())
-          .lte("created_at", today.toISOString())
+          .gte("created_at", new Date(new Date().setDate(new Date().getDate() - 6)).toISOString())
 
         if (error) throw error
 
@@ -207,13 +183,14 @@ export default function DashboardPage() {
             return acc
           }, {})
 
-          const dateRange = Array.from({ length: 7 }, (_, i) => {
+          const today = new Date()
+          const currentWeek = Array.from({ length: 7 }, (_, i) => {
             const date = new Date(today)
             date.setDate(today.getDate() - 6 + i)
             return date.toLocaleDateString("en-US", { day: "numeric", month: "numeric" })
           })
 
-          const dailySalesData = dateRange.map((date) => ({
+          const dailySalesData = currentWeek.map((date) => ({
             name: date,
             sales: salesByDay[date] || 0,
           }))
@@ -221,29 +198,27 @@ export default function DashboardPage() {
           setDailySales(dailySalesData)
         }
       } catch (error) {
-        toast.error("Failed to load default daily sales")
+        toast.error("Failed to load daily sales")
         console.error("Error:", error)
       } finally {
         setLoading(false)
       }
     }
 
-    fetchDefaultDailySales()
+    fetchDailySales()
   }, [])
 
-  // Fetch default monthly sales (current year) on initial load
+  // Fetch monthly sales
   useEffect(() => {
-    const fetchDefaultMonthlySales = async () => {
+    const fetchMonthlySales = async () => {
       try {
         setLoading(true)
-        const year = new Date().getFullYear()
-
         const { data, error } = await supabase
           .from("orders")
           .select("total, created_at, status")
           .eq("status", "completed")
-          .gte("created_at", new Date(year, 0, 1).toISOString())
-          .lte("created_at", new Date(year, 11, 31).toISOString())
+          .gte("created_at", new Date(new Date().getFullYear(), 0, 1).toISOString())
+          .lte("created_at", new Date(new Date().getFullYear(), 11, 31).toISOString())
 
         if (error) throw error
 
@@ -252,7 +227,7 @@ export default function DashboardPage() {
             const month = new Date(order.created_at).toLocaleString("en-US", { month: "short" })
             acc[month] = (acc[month] || 0) + order.total
             return acc
-        }, {})
+          }, {})
 
           const monthlySalesData = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].map((month) => ({
             name: month,
@@ -262,174 +237,15 @@ export default function DashboardPage() {
           setMonthlySales(monthlySalesData)
         }
       } catch (error) {
-        toast.error("Failed to load default monthly sales")
+        toast.error("Failed to load monthly sales")
         console.error("Error:", error)
       } finally {
         setLoading(false)
       }
     }
 
-    fetchDefaultMonthlySales()
+    fetchMonthlySales()
   }, [])
-
-  // Fetch daily sales with selected date range
-  const fetchDailySales = async () => {
-    try {
-      setLoading(true)
-      if (!dailyStartDate || !dailyEndDate) {
-        toast.error("Please select both start and end dates")
-        return
-      }
-
-      const start = new Date(dailyStartDate)
-      const end = new Date(dailyEndDate)
-
-      if (start > end) {
-        toast.error("Start date must be before end date")
-        return
-      }
-
-      const { data, error } = await supabase
-        .from("orders")
-        .select("created_at")
-        .gte("created_at", start.toISOString())
-        .lte("created_at", end.toISOString())
-
-      if (error) throw error
-
-      if (data) {
-        const salesByDay = (data as Order[]).reduce((acc: { [key: string]: number }, order: Order) => {
-          const date = new Date(order.created_at).toLocaleDateString("en-US", { day: "numeric", month: "numeric" })
-          acc[date] = (acc[date] || 0) + 1
-          return acc
-        }, {})
-
-        const dateRange = []
-        let currentDate = new Date(start)
-        while (currentDate <= end) {
-          dateRange.push(new Date(currentDate).toLocaleDateString("en-US", { day: "numeric", month: "numeric" }))
-          currentDate.setDate(currentDate.getDate() + 1)
-        }
-
-        const dailySalesData = dateRange.map((date) => ({
-          name: date,
-          sales: salesByDay[date] || 0,
-        }))
-
-        setDailySales(dailySalesData)
-        setIsDailyDialogOpen(false)
-      }
-    } catch (error) {
-      toast.error("Failed to load daily sales")
-      console.error("Error:", error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // Fetch monthly sales for selected year
-  const fetchMonthlySales = async () => {
-    try {
-      setLoading(true)
-      if (!monthlyYear) {
-        toast.error("Please select a year")
-        return
-      }
-
-      const year = parseInt(monthlyYear)
-      if (isNaN(year) || year < 2000 || year > new Date().getFullYear()) {
-        toast.error("Please enter a valid year")
-        return
-      }
-
-      const { data, error } = await supabase
-        .from("orders")
-        .select("total, created_at, status")
-        .eq("status", "completed")
-        .gte("created_at", new Date(year, 0, 1).toISOString())
-        .lte("created_at", new Date(year, 11, 31).toISOString())
-
-      if (error) throw error
-
-      if (data) {
-        const salesByMonth = (data as Order[]).reduce((acc: { [key: string]: number }, order: Order) => {
-          const month = new Date(order.created_at).toLocaleString("en-US", { month: "short" })
-          acc[month] = (acc[month] || 0) + order.total
-          return acc
-        }, {})
-
-        const monthlySalesData = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].map((month) => ({
-          name: month,
-          total: salesByMonth[month] || 0,
-        }))
-
-        setMonthlySales(monthlySalesData)
-        setIsMonthlyDialogOpen(false)
-      }
-    } catch (error) {
-      toast.error("Failed to load monthly sales")
-      console.error("Error:", error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // Export daily sales to PDF
-  const exportDailySalesToPDF = () => {
-    const doc = new jsPDF()
-    
-    doc.setFontSize(16)
-    doc.text("Daily Sales Report", 20, 20)
-    
-    doc.setFontSize(12)
-    const periodText = dailyStartDate && dailyEndDate 
-      ? `Period: ${dailyStartDate} to ${dailyEndDate}`
-      : `Period: Last 7 Days (ending ${new Date().toLocaleDateString("en-US", { day: "numeric", month: "numeric" })})`
-    doc.text(periodText, 20, 30)
-
-    const tableData = dailySales.map((item, index) => [
-      index + 1,
-      item.name,
-      item.sales.toString()
-    ])
-
-    autoTable(doc, { // Use autoTable function with doc as first argument
-      startY: 40,
-      head: [['#', 'Date', 'Number of Orders']],
-      body: tableData,
-      theme: 'striped',
-      headStyles: { fillColor: [125, 90, 60] },
-    })
-
-    doc.save(`daily-sales-${new Date().toISOString().split('T')[0]}.pdf`)
-  }
-
-  // Export monthly sales to PDF
-  const exportMonthlySalesToPDF = () => {
-    const doc = new jsPDF()
-    
-    doc.setFontSize(16)
-    doc.text("Monthly Sales Report", 20, 20)
-    
-    doc.setFontSize(12)
-    doc.text(`Year: ${monthlyYear}`, 20, 30)
-
-    const tableData = monthlySales.map((item, index) => [
-      index + 1,
-      item.name,
-      `₱${item.total.toFixed(2)}`
-    ])
-
-    autoTable(doc, { // Use autoTable function with doc as first argument
-      startY: 40,
-      head: [['#', 'Month', 'Total Sales']],
-      body: tableData,
-      theme: 'striped',
-      headStyles: { fillColor: [125, 90, 60] },
-    })
-
-    doc.save(`monthly-sales-${monthlyYear}-${new Date().toISOString().split('T')[0]}.pdf`)
-  }
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -461,53 +277,9 @@ export default function DashboardPage() {
 
         <motion.div variants={itemVariants}>
           <Card className="border border-gray-200 w-full shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="text-lg font-semibold text-gray-800">Daily Sales</CardTitle>
-                <CardDescription className="text-sm text-gray-500">
-                  Number of orders per day {dailyStartDate && dailyEndDate ? "for the selected range" : "for the last 7 days"}
-                </CardDescription>
-              </div>
-              <div className="space-x-2">
-                <Button variant="outline" onClick={exportDailySalesToPDF}>Export to PDF</Button>
-                <Dialog open={isDailyDialogOpen} onOpenChange={setIsDailyDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button variant="outline">Retrieve</Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                      <DialogTitle>Select Date Range for Daily Sales</DialogTitle>
-                      <DialogDescription>Choose the date range to view daily sales data.</DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="start-date" className="text-right">Start Date</Label>
-                        <Input
-                          id="start-date"
-                          type="date"
-                          value={dailyStartDate}
-                          onChange={(e) => setDailyStartDate(e.target.value)}
-                          className="col-span-3"
-                        />
-                      </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="end-date" className="text-right">End Date</Label>
-                        <Input
-                          id="end-date"
-                          type="date"
-                          value={dailyEndDate}
-                          onChange={(e) => setDailyEndDate(e.target.value)}
-                          className="col-span-3"
-                        />
-                      </div>
-                    </div>
-                    <DialogFooter>
-                      <Button variant="outline" onClick={() => setIsDailyDialogOpen(false)}>Cancel</Button>
-                      <Button onClick={fetchDailySales}>Retrieve</Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              </div>
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold text-gray-800">Daily Sales</CardTitle>
+              <CardDescription className="text-sm text-gray-500">Number of orders per day for the current week</CardDescription>
             </CardHeader>
             <CardContent className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -528,44 +300,9 @@ export default function DashboardPage() {
 
         <motion.div variants={itemVariants}>
           <Card className="border border-gray-200 w-full shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="text-lg font-semibold text-gray-800">Total Sales for the Month</CardTitle>
-                <CardDescription className="text-sm text-gray-500">
-                  Monthly sales comparison {monthlyYear !== new Date().getFullYear().toString() ? `for ${monthlyYear}` : "for the current year"}
-                </CardDescription>
-              </div>
-              <div className="space-x-2">
-                <Button variant="outline" onClick={exportMonthlySalesToPDF}>Export to PDF</Button>
-                <Dialog open={isMonthlyDialogOpen} onOpenChange={setIsMonthlyDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button variant="outline">Retrieve</Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                      <DialogTitle>Select Year for Monthly Sales</DialogTitle>
-                      <DialogDescription>Choose the year to view monthly sales data.</DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="year" className="text-right">Year</Label>
-                        <Input
-                          id="year"
-                          type="number"
-                          value={monthlyYear}
-                          onChange={(e) => setMonthlyYear(e.target.value)}
-                          placeholder="Enter year (e.g., 2025)"
-                          className="col-span-3"
-                        />
-                      </div>
-                    </div>
-                    <DialogFooter>
-                      <Button variant="outline" onClick={() => setIsMonthlyDialogOpen(false)}>Cancel</Button>
-                      <Button onClick={fetchMonthlySales}>Retrieve</Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              </div>
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold text-gray-800">Total Sales for the Month</CardTitle>
+              <CardDescription className="text-sm text-gray-500">Monthly sales comparison for the current year</CardDescription>
             </CardHeader>
             <CardContent className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -592,34 +329,37 @@ export default function DashboardPage() {
                 <CardDescription className="text-sm text-gray-500">Top 5 best selling items this month</CardDescription>
               </CardHeader>
               <CardContent className="h-[300px] flex justify-center items-center">
-                {bestSellingItems.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={bestSellingItems}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={true}
-                        outerRadius={90}
-                        fill="#8884d8"
-                        dataKey="value"
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
-                      >
-                        {bestSellingItems.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Legend
-                        layout="horizontal"
-                        verticalAlign="bottom"
-                        align="center"
-                        wrapperStyle={{ paddingTop: "10px", fontSize: "12px" }}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <p className="text-gray-500">No data available</p>
-                )}
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={bestSellingItems}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      outerRadius={90}
+                      fill="#8884d8"
+                      dataKey="value"
+                      label={({ name, percent }) => (
+                        <text
+                          style={{ fontSize: "12px", fill: "#333" }}
+                          textAnchor="middle"
+                        >
+                          {`${name} (${(percent * 100).toFixed(0)}%)`}
+                        </text>
+                      )}
+                    >
+                      {bestSellingItems.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Legend
+                      layout="horizontal"
+                      verticalAlign="bottom"
+                      align="center"
+                      wrapperStyle={{ paddingTop: "10px", fontSize: "12px" }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
               </CardContent>
             </Card>
           </motion.div>
