@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge"
 import { Edit, Trash2 } from "lucide-react"
 import { toast } from "react-hot-toast"
 
-
 interface MenuItem {
   id: string
   menu_name: string
@@ -93,27 +92,26 @@ export function Menu({ items, onAddToCart, isAdmin = false, onEdit, onDelete }: 
                   </Button>
                 </>
               ) : (
-<Button 
-  className="w-full bg-amber-600 hover:bg-amber-700"
-  onClick={async () => {
-    // Get user session from cookies
-    const userSession = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('user-session='))
-      ?.split('=')[1]
+                <Button 
+                  className="w-full bg-amber-600 hover:bg-amber-700"
+                  onClick={async () => {
+                    const userSession = document.cookie
+                      .split('; ')
+                      .find(row => row.startsWith('user-session='))
+                      ?.split('=')[1]
 
-    if (!userSession) {
-      toast.error('Please sign in to add items to cart')
-      return
-    }
+                    if (!userSession) {
+                      toast.error('Please sign in to add items to cart')
+                      return
+                    }
 
-    console.log('Add to Cart button clicked for:', item.menu_name); // Debugging
-    onAddToCart?.(item)
-  }}
-  disabled={!item.available}
->
-  {item.available ? 'Add to Cart' : 'Out of Stock'}
-</Button>
+                    console.log('Add to Cart button clicked for:', item.menu_name)
+                    onAddToCart?.(item)
+                  }}
+                  disabled={!item.available}
+                >
+                  {item.available ? 'Add to Cart' : 'Out of Stock'}
+                </Button>
               )}
             </div>
           </div>
@@ -121,4 +119,4 @@ export function Menu({ items, onAddToCart, isAdmin = false, onEdit, onDelete }: 
       ))}
     </>
   )
-} 
+}
