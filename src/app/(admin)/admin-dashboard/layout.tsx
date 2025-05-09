@@ -62,7 +62,7 @@ export default function DashboardLayout({
       <div className="flex h-screen w-screen bg-gray-50">
         <Sidebar variant="sidebar" collapsible="icon" className="border-r border-gray-200 w-64">
           <SidebarHeader className="border-b border-gray-200 px-3 py-2">
-            <Link href="/dashboard" className="flex items-center gap-2">
+            <Link href="/admin-dashboard" className="flex items-center gap-2">
               <motion.div whileHover={{ rotate: 10 }} transition={{ type: "spring", stiffness: 400 }}>
                 <Coffee className="h-6 w-6 text-brown-600" />
               </motion.div>
