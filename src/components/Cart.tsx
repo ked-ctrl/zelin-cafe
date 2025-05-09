@@ -185,7 +185,7 @@ export default function Cart() {
             </div>
             <div className="flex-1">
               <h3 className="text-lg font-semibold text-gray-900">{item.menu_item.menu_name}</h3>
-              <p className="text-sm text-gray-500">${item.menu_item.menu_price.toFixed(2)}</p>
+              <p className="text-sm text-gray-500">₱{item.menu_item.menu_price.toFixed(2)}</p>
             </div>
             <div className="flex items-center gap-3">
               <Button
@@ -233,7 +233,7 @@ export default function Cart() {
             <div key={item.id} className="flex justify-between">
               <p className="text-gray-600">{item.menu_item.menu_name}</p>
               <p className="text-gray-900 font-medium">
-                ${(item.menu_item.menu_price * item.quantity).toFixed(2)}
+                ₱{(item.menu_item.menu_price * item.quantity).toFixed(2)}
               </p>
             </div>
           ))}
@@ -241,7 +241,7 @@ export default function Cart() {
         <div className="border-t border-gray-100 pt-4 mt-4">
           <div className="flex justify-between">
             <p className="text-gray-600">Total</p>
-            <p className="text-xl font-bold text-gray-900">${totalPrice.toFixed(2)}</p>
+            <p className="text-xl font-bold text-gray-900">₱{totalPrice.toFixed(2)}</p>
           </div>
         </div>
           <Button
