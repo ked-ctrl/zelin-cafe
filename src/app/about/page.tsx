@@ -34,19 +34,19 @@ const teamMembers = [
 // Mock data for testimonials
 const testimonials = [
   {
-    name: "David Wilson",
-    text: "Zelin Café has the best cappuccino in town! The atmosphere is cozy and the staff is always friendly. It&apos; my go-to spot for both work and relaxation.",
+    name: "Jomarie Mabiasan",
+    text: "The atmosphere is cozy and the staff is always friendly. It's my go-to spot for both school and relaxation.",
     rating: 5,
   },
   {
-    name: "Jessica Lee",
-    text: "I love their pastries, especially the croissants. Everything is freshly baked and you can taste the quality. The coffee is exceptional too!",
+    name: "Jazz Terminez",
+    text: "I love their pastries, everything is freshly baked and you can taste the quality. ",
     rating: 5,
   },
   {
-    name: "Robert Taylor",
-    text: "Great place to work remotely. The wifi is reliable, the coffee keeps coming, and the ambient noise is just right. Highly recommend!",
-    rating: 4,
+    name: "Tim Garay",
+    text: "Highly recommend!",
+    rating: 5,
   },
 ]
 
@@ -130,7 +130,7 @@ export default function AboutPage() {
                     from farm to cup maintains our commitment to quality and sustainability.
                   </p>
                   <p>
-                    At Zelin Café, we believe that great coffee is an art form - one that we&apos;e proud to share with our
+                    At Zelin Café, we believe that great coffee is an art form - one that we're proud to share with our
                     community every day.
                   </p>
                 </div>
@@ -211,7 +211,7 @@ export default function AboutPage() {
                   </CardHeader>
                   <CardContent>
                     <p className="text-center">
-                      We&apos;e committed to ethical sourcing, eco-friendly practices, and supporting the communities that
+                      We're committed to ethical sourcing, eco-friendly practices, and supporting the communities that
                       grow our coffee.
                     </p>
                   </CardContent>
@@ -245,7 +245,7 @@ export default function AboutPage() {
                   <CardContent>
                     <p className="text-center">
                       We create spaces where people connect, collaborate, and feel at home. Our café is more than a
-                      business—it&apos; a community hub.
+                      business—it's a community hub.
                     </p>
                   </CardContent>
                 </Card>
@@ -266,7 +266,7 @@ export default function AboutPage() {
             >
               <h2 className="text-2xl md:text-3xl font-bold tracking-tight">What Our Customers Say</h2>
               <p className="mt-4 text-gray-600 text-sm md:text-base">
-                Don&apos; just take our word for it - hear from our community.
+                Don't just take our word for it - hear from our community.
               </p>
             </motion.div>
 
@@ -291,7 +291,7 @@ export default function AboutPage() {
                           />
                         ))}
                       </div>
-                      <p className="italic mb-4">&quot;{testimonial.text}&quot;</p>
+                      <p className="italic mb-4">"{testimonial.text}"</p>
                       <p className="font-semibold">- {testimonial.name}</p>
                     </CardContent>
                   </Card>
@@ -325,8 +325,8 @@ export default function AboutPage() {
                     <Clock className="h-5 w-5 text-amber-600 mt-0.5" />
                     <div>
                       <h3 className="font-semibold">Hours</h3>
-                      <p>Monday - Friday: 6am - 8pm</p>
-                      <p>Saturday - Sunday: 7am - 9pm</p>
+                      <p>Monday - Friday: 10am - 8pm</p>
+                      <p>Saturday - Sunday: 11am - 8pm</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
@@ -340,7 +340,7 @@ export default function AboutPage() {
                     <Mail className="h-5 w-5 text-amber-600 mt-0.5" />
                     <div>
                       <h3 className="font-semibold">Email</h3>
-                      <p>hello@zelincafe.com</p>
+                      <p>zelincafeparanaque@gmail.com</p>
                     </div>
                   </div>
                 </div>
