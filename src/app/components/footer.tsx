@@ -44,7 +44,7 @@ export default function Footer() {
               <span className="text-xl font-bold">Zelin Café</span>
             </div>
             <p className="text-gray-400">
-              Crafting exceptional coffee experiences since 2020. Our passion is in every cup.
+              Crafting exceptional coffee experience since 2020. Our passion is in every cup.
             </p>
             <div className="flex space-x-4">
               <motion.div whileHover={{ scale: 1.2, color: "#E1306C" }}>
